@@ -1,0 +1,30 @@
+name: Setup AWS Credentials
+description: Setup AWS credentials for pushing to the cloud
+
+inputs:
+  role_arn:
+    description: "The ARN of the role to assume"
+    required: true
+  aws_region:
+    description: "The AWS region to use"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - id: configure
+      name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ inputs.role_arn }}
+        role-session-name: GithubActionDeployment
+        output-credentials: true
+
+    - name: Create temp AWS profile
+      shell: bash
+      run: |
+        aws configure set aws_access_key_id ${{ steps.configure.outputs.aws-access-key-id }} && \
+        aws configure set aws_secret_access_key ${{ steps.configure.outputs.aws-secret-access-key }} && \
+        aws configure set aws_session_token ${{ steps.configure.outputs.aws-session-token }} && \
+        aws configure set default.region ${{ inputs.aws_region }}
